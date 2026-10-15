@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лабораторная работа №2 — обработка изображений</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ink: #172033;
+      --muted: #687386;
+      --line: #dce2eb;
+      --surface: #ffffff;
+      --blue: #466be8;
+      --blue-soft: #edf1ff;
+      --pink: #c64087;
+      --green: #168b81;
+      --shadow: 0 10px 28px rgb(44 55 84 / 9%);
+    }
+
+    body {
+      margin: 0;
+      min-width: 1120px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgb(70 107 232 / 12%), transparent 30%),
+        radial-gradient(circle at 100% 100%, rgb(198 64 135 / 9%), transparent 28%),
+        #f5f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    button,
+    input,
+    select { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .page {
+      width: 1180px;
+      margin: 0 auto;
+      padding: 34px 0 48px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      font-size: 37px;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .variant {
+      flex: none;
+      padding: 11px 16px;
+      border: 1px solid #cdd6ef;
+      border-radius: 10px;
+      color: #2f4fb6;
+      background: var(--blue-soft);
+      font-weight: 750;
+    }
+
+    .sample-bar,
+    .visual-panel,
+    .control-panel,
+    .explanation {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .sample-bar {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 16px;
+      padding: 13px 15px;
+    }
+
+    .sample-bar strong {
+      margin-right: 5px;
+      font-size: 14px;
+    }
+
+    .sample-button,
+    .upload-button,
+    .secondary-button {
+      padding: 8px 12px;
+      border: 1px solid #cbd3df;
+      border-radius: 8px;
+      color: #344054;
+      background: #f9fafb;
+      font-weight: 650;
+    }
+
+    .sample-button:hover,
+    .upload-button:hover,
+    .secondary-button:hover { background: #f0f3f8; }
+
+    .sample-button.active {
+      border-color: var(--blue);
+      color: #3152bd;
+      background: var(--blue-soft);
+    }
+
+    .upload-button { margin-left: auto; }
+    #fileInput { display: none; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      align-items: start;
+      gap: 16px;
+    }
+
+    .visual-panel { padding: 16px; }
+
+    .canvas-grid,
+    .histogram-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .canvas-card,
+    .histogram-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8f9fc;
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      padding: 8px 11px;
+      border-bottom: 1px solid var(--line);
+      background: white;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .image-canvas {
+      display: block;
+      width: 100%;
+      height: 260px;
+      object-fit: contain;
+      background: #e8ebf1;
+    }
+
+    .histogram-title {
+      margin: 17px 0 10px;
+      color: #39455a;
+      font-size: 14px;
+    }
+
+    .histogram-card { padding-bottom: 5px; }
+
+    .histogram-canvas {
+      display: block;
+      width: 100%;
+      height: 105px;
+      background: #f8f9fc;
+    }
+
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .control-panel {
+      overflow: hidden;
+    }
+
+    .control-header {
+      padding: 15px 17px;
+      color: white;
+      background: #1d2940;
+    }
+
+    .control-header h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .control-header p {
+      margin: 0;
+      color: #bdc7d8;
+      font-size: 12px;
+    }
+
+    .control-body { padding: 16px; }
+
+    .method-group + .method-group {
+      margin-top: 18px;
+      padding-top: 17px;
+      border-top: 1px solid var(--line);
+    }
+
+    .method-group h3 {
+      margin: 0 0 9px;
+      color: #526078;
+      font-size: 12px;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+
+    .method-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .method-button {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #d3d9e3;
+      border-radius: 8px;
+      color: #344054;
+      background: white;
+      font-size: 13px;
+      font-weight: 650;
+      text-align: left;
+    }
+
+    .method-button:hover { background: #f7f8fb; }
+
+    .method-button.active {
+      border-color: var(--blue);
+      color: #3152bd;
+      background: var(--blue-soft);
+      box-shadow: 0 0 0 2px rgb(70 107 232 / 9%);
+    }
+
+    .parameter {
+      margin-top: 17px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .parameter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    #thresholdValue {
+      min-width: 34px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      color: white;
+      background: var(--pink);
+      text-align: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--pink);
+    }
+
+    select {
+      width: 100%;
+      margin-top: 5px;
+      padding: 8px 9px;
+      border: 1px solid #cbd3df;
+      border-radius: 7px;
+      color: var(--ink);
+      background: white;
+    }
+
+    select:disabled {
+      color: #9aa3b2;
+      background: #f1f3f6;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .primary-button {
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      background: var(--blue);
+      font-weight: 750;
+    }
+
+    .primary-button:hover { background: #365bd4; }
+    .actions .secondary-button { padding: 10px 8px; }
+
+    .download-button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px;
+      border: 1px solid #add5cf;
+      border-radius: 8px;
+      color: #116b64;
+      background: #edf9f7;
+      font-weight: 700;
+    }
+
+    .explanation {
+      margin-top: 16px;
+      padding: 20px 22px;
+    }
+
+    .explanation-top {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+    }
+
+    .explanation h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    #methodTitle {
+      margin: 0 0 7px;
+      color: var(--blue);
+      font-size: 16px;
+    }
+
+    #methodDescription {
+      margin: 0;
+      color: #4d596d;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .formula {
+      margin-top: 13px;
+      padding: 10px 13px;
+      border-left: 4px solid var(--blue);
+      border-radius: 5px;
+      color: #344054;
+      background: #f3f5fa;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Лабораторная работа №2</p>
+        <h1>Обработка цифровых изображений</h1>
+        <p class="subtitle">Контрастирование, эквализация гистограммы и обнаружение особенностей изображения</p>
+      </div>
+      <div class="variant">Вариант №4</div>
+    </header>
+
+    <section class="sample-bar" aria-label="Тестовые изображения">
+      <strong>Тестовая база:</strong>
+      <button class="sample-button active" data-sample="contrast">Низкий контраст</button>
+      <button class="sample-button" data-sample="lighting">Неравномерное освещение</button>
+      <button class="sample-button" data-sample="features">Точки и линии</button>
+      <label class="upload-button" for="fileInput">Загрузить изображение</label>
+      <input id="fileInput" type="file" accept="image/*">
+    </section>
+
+    <main class="workspace">
+      <section class="visual-panel">
+        <div class="canvas-grid">
+          <article class="canvas-card">
+            <div class="card-heading"><span>Исходное изображение</span><span id="sourceSize">720 × 440</span></div>
+            <canvas id="sourceCanvas" class="image-canvas" width="720" height="440"></canvas>
+          </article>
+          <article class="canvas-card">
+            <div class="card-heading"><span>Результат обработки</span><span id="resultMethod">Линейное контрастирование</span></div>
+            <canvas id="resultCanvas" class="image-canvas" width="720" height="440"></canvas>
+          </article>
+        </div>
+
+        <h2 class="histogram-title">Гистограммы яркости</h2>
+        <div class="histogram-grid">
+          <article class="histogram-card">
+            <div class="card-heading">До обработки</div>
+            <canvas id="sourceHistogram" class="histogram-canvas" width="400" height="130"></canvas>
+          </article>
+          <article class="histogram-card">
+            <div class="card-heading">После обработки</div>
+            <canvas id="resultHistogram" class="histogram-canvas" width="400" height="130"></canvas>
+          </article>
+        </div>
+
+        <div class="status-line">
+          <span id="statusText">Тестовое изображение загружено</span>
+          <span id="processingTime">Время обработки: 0 мс</span>
+        </div>
+      </section>
+
+      <aside class="control-panel">
+        <div class="control-header">
+          <h2>Метод обработки</h2>
+          <p>Выберите алгоритм и настройте параметры</p>
+        </div>
+        <div class="control-body">
+          <section class="method-group">
+            <h3>Контраст и гистограмма</h3>
+            <div class="method-list">
+              <button class="method-button active" data-method="linear">Линейное контрастирование</button>
+              <button class="method-button" data-method="equalizeRgb">Эквализация каналов RGB</button>
+              <button class="method-button" data-method="equalizeHsv">Эквализация яркости HSV</button>
+            </div>
+          </section>
+
+          <section class="method-group">
+            <h3>Сегментация</h3>
+            <div class="method-list">
+              <button class="method-button" data-method="points">Обнаружение точек</button>
+              <button class="method-button" data-method="lines">Обнаружение линий</button>
+              <button class="method-button" data-method="edges">Перепады яркости (Собель)</button>
+            </div>
+          </section>
+
+          <section class="parameter">
+            <div class="parameter-row">
+              <label for="threshold">Порог обнаружения</label>
+              <span id="thresholdValue">70</span>
+            </div>
+            <input id="threshold" type="range" min="0" max="255" value="70">
+
+            <div class="parameter-row" style="margin-top: 14px; margin-bottom: 0;">
+              <label for="lineDirection">Направление линий</label>
+            </div>
+            <select id="lineDirection" disabled>
+              <option value="horizontal">Горизонтальные</option>
+              <option value="vertical">Вертикальные</option>
+              <option value="diagonal45">Диагональные +45°</option>
+              <option value="diagonal135">Диагональные −45°</option>
+            </select>
+          </section>
+
+          <div class="actions">
+            <button id="applyButton" class="primary-button">Применить</button>
+            <button id="resetButton" class="secondary-button">Сбросить</button>
+          </div>
+          <button id="downloadButton" class="download-button">Скачать результат PNG</button>
+        </div>
+      </aside>
+    </main>
+
+    <section class="explanation">
+      <div class="explanation-top">
+        <h2>Пояснение метода</h2>
+        <div>
+          <h3 id="methodTitle">Линейное контрастирование</h3>
+          <p id="methodDescription"></p>
+          <div id="methodFormula" class="formula"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const WIDTH = 720;
+    const HEIGHT = 440;
+
+    const sourceCanvas = document.getElementById("sourceCanvas");
+    const resultCanvas = document.getElementById("resultCanvas");
+    const sourceContext = sourceCanvas.getContext("2d", { willReadFrequently: true });
+    const resultContext = resultCanvas.getContext("2d", { willReadFrequently: true });
+    const sourceHistogram = document.getElementById("sourceHistogram");
+    const resultHistogram = document.getElementById("resultHistogram");
+    const fileInput = document.getElementById("fileInput");
+    const threshold = document.getElementById("threshold");
+    const thresholdValue = document.getElementById("thresholdValue");
+    const lineDirection = document.getElementById("lineDirection");
+    const resultMethod = document.getElementById("resultMethod");
+    const statusText = document.getElementById("statusText");
+    const processingTime = document.getElementById("processingTime");
+    const methodTitle = document.getElementById("methodTitle");
+    const methodDescription = document.getElementById("methodDescription");
+    const methodFormula = document.getElementById("methodFormula");
+
+    let selectedMethod = "linear";
+
+    const methodInfo = {
+      linear: {
+        title: "Линейное контрастирование",
+        description: "Для каждого канала RGB находится минимальная и максимальная интенсивность. Занятый диапазон растягивается на весь интервал 0–255. Метод хорошо работает с малоконтрастными изображениями, но чувствителен к единичным очень тёмным и светлым пикселям.",
+        formula: "I′ = (I − Imin) · 255 / (Imax − Imin)"
+      },
+      equalizeRgb: {
+        title: "Эквализация трёх каналов RGB",
+        description: "Гистограммы красного, зелёного и синего каналов выравниваются независимо с помощью их интегральных функций распределения. Контраст повышается сильно, но соотношение каналов может измениться, из-за чего появляются новые оттенки.",
+        formula: "I′k = round((CDFk(Ik) − CDFmin) / (N − CDFmin) · 255),  k ∈ {R,G,B}"
+      },
+      equalizeHsv: {
+        title: "Эквализация яркости в HSV",
+        description: "Изображение переводится в HSV. Выравнивается только компонент V, а оттенок H и насыщенность S сохраняются. Обычно этот способ повышает контраст цветного изображения без заметного искажения исходных цветов.",
+        formula: "RGB → HSV;  V′ = equalize(V);  HSV(H, S, V′) → RGB"
+      },
+      points: {
+        title: "Обнаружение изолированных точек",
+        description: "Используется высокочастотная маска Лапласа с центральным коэффициентом 8. Большой по модулю отклик возникает там, где центральный пиксель сильно отличается от восьми соседей. Порог превращает отклик в бинарную карту точек.",
+        formula: "K = [−1 −1 −1; −1 8 −1; −1 −1 −1],  точка: |I * K| ≥ T"
+      },
+      lines: {
+        title: "Обнаружение направленных линий",
+        description: "Свёртка с одной из четырёх масок усиливает линии выбранного направления. После свёртки применяется порог. Переключатель направления позволяет искать горизонтальные, вертикальные и диагональные линии.",
+        formula: "R(x,y) = |I * Kнаправления|;  линия: R(x,y) ≥ T"
+      },
+      edges: {
+        title: "Обнаружение перепадов яркости оператором Собеля",
+        description: "Две маски Собеля оценивают горизонтальную и вертикальную производные яркости. Их совместная величина показывает силу границы. Порог отделяет существенные перепады от слабых изменений и шума.",
+        formula: "G = √(Gx² + Gy²);  граница: G ≥ T"
+      }
+    };
+
+    const methodNames = {
+      linear: "Линейный контраст",
+      equalizeRgb: "Эквализация RGB",
+      equalizeHsv: "Эквализация HSV",
+      points: "Точки",
+      lines: "Линии",
+      edges: "Границы Собеля"
+    };
+
+    function clamp(value, min = 0, max = 255) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function copyImageData(imageData) {
+      return new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+    }
+
+    function getSourceData() {
+      return sourceContext.getImageData(0, 0, WIDTH, HEIGHT);
+    }
+
+    function drawLowContrastSample() {
+      const gradient = sourceContext.createLinearGradient(0, 0, WIDTH, HEIGHT);
+      gradient.addColorStop(0, "#8994a4");
+      gradient.addColorStop(1, "#b5a9af");
+      sourceContext.fillStyle = gradient;
+      sourceContext.fillRect(0, 0, WIDTH, HEIGHT);
+
+      sourceContext.fillStyle = "#78899b";
+      sourceContext.fillRect(65, 70, 210, 285);
+      sourceContext.fillStyle = "#b59aa3";
+      sourceContext.beginPath();
+      sourceContext.arc(455, 205, 112, 0, Math.PI * 2);
+      sourceContext.fill();
+      sourceContext.fillStyle = "#91a69d";
+      sourceContext.beginPath();
+      sourceContext.moveTo(525, 350);
+      sourceContext.lineTo(675, 350);
+      sourceContext.lineTo(600, 100);
+      sourceContext.closePath();
+      sourceContext.fill();
+
+      sourceContext.fillStyle = "#c1b7ba";
+      sourceContext.font = "700 52px Arial";
+      sourceContext.fillText("КОНТРАСТ", 170, 420);
+    }
+
+    function drawLightingSample() {
+      const gradient = sourceContext.createRadialGradient(180, 130, 20, 350, 220, 520);
+      gradient.addColorStop(0, "#ece3cd");
+      gradient.addColorStop(.52, "#9e9b8d");
+      gradient.addColorStop(1, "#4c5562");
+      sourceContext.fillStyle = gradient;
+      sourceContext.fillRect(0, 0, WIDTH, HEIGHT);
+
+      sourceContext.fillStyle = "rgb(105 99 86 / 75%)";
+      sourceContext.fillRect(90, 85, 170, 270);
+      sourceContext.fillStyle = "rgb(182 175 151 / 72%)";
+      sourceContext.beginPath();
+      sourceContext.arc(450, 215, 105, 0, Math.PI * 2);
+      sourceContext.fill();
+      sourceContext.strokeStyle = "rgb(55 64 73 / 70%)";
+      sourceContext.lineWidth = 18;
+      sourceContext.strokeRect(350, 80, 260, 275);
+      sourceContext.fillStyle = "rgb(230 225 209 / 75%)";
+      sourceContext.font = "700 45px Arial";
+      sourceContext.fillText("СВЕТ", 265, 415);
+    }
+
+    function drawFeaturesSample() {
+      sourceContext.fillStyle = "#e8e8e8";
+      sourceContext.fillRect(0, 0, WIDTH, HEIGHT);
+
+      sourceContext.strokeStyle = "#30343a";
+      sourceContext.lineWidth = 6;
+      for (let y = 65; y <= 155; y += 30) {
+        sourceContext.beginPath();
+        sourceContext.moveTo(55, y);
+        sourceContext.lineTo(300, y);
+        sourceContext.stroke();
+      }
+      for (let x = 390; x <= 510; x += 40) {
+        sourceContext.beginPath();
+        sourceContext.moveTo(x, 45);
+        sourceContext.lineTo(x, 205);
+        sourceContext.stroke();
+      }
+
+      sourceContext.lineWidth = 7;
+      sourceContext.beginPath();
+      sourceContext.moveTo(70, 365);
+      sourceContext.lineTo(280, 220);
+      sourceContext.stroke();
+      sourceContext.beginPath();
+      sourceContext.moveTo(365, 230);
+      sourceContext.lineTo(610, 385);
+      sourceContext.stroke();
+
+      sourceContext.fillStyle = "#20242a";
+      const points = [[610, 65], [655, 110], [590, 150], [650, 205], [330, 120], [335, 320], [650, 340]];
+      for (const [x, y] of points) {
+        sourceContext.beginPath();
+        sourceContext.arc(x, y, 5, 0, Math.PI * 2);
+        sourceContext.fill();
+      }
+
+      sourceContext.strokeStyle = "#777";
+      sourceContext.lineWidth = 3;
+      sourceContext.strokeRect(90, 220, 160, 135);
+      sourceContext.beginPath();
+      sourceContext.arc(480, 315, 72, 0, Math.PI * 2);
+      sourceContext.stroke();
+    }
+
+    function loadSample(name) {
+      sourceContext.clearRect(0, 0, WIDTH, HEIGHT);
+      if (name === "lighting") drawLightingSample();
+      else if (name === "features") drawFeaturesSample();
+      else drawLowContrastSample();
+
+      document.querySelectorAll(".sample-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.sample === name);
+      });
+      statusText.textContent = "Тестовое изображение загружено";
+      applyCurrentMethod();
+    }
+
+    function drawUploadedImage(image) {
+      sourceContext.fillStyle = "#ffffff";
+      sourceContext.fillRect(0, 0, WIDTH, HEIGHT);
+      const scale = Math.min(WIDTH / image.width, HEIGHT / image.height);
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (WIDTH - width) / 2;
+      const y = (HEIGHT - height) / 2;
+      sourceContext.drawImage(image, x, y, width, height);
+      document.querySelectorAll(".sample-button").forEach(button => button.classList.remove("active"));
+      statusText.textContent = `Загружен файл: ${fileInput.files[0].name}`;
+      applyCurrentMethod();
+    }
+
+    function stretchContrast(imageData) {
+      const output = copyImageData(imageData);
+      const min = [255, 255, 255];
+      const max = [0, 0, 0];
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        for (let channel = 0; channel < 3; channel++) {
+          min[channel] = Math.min(min[channel], imageData.data[i + channel]);
+          max[channel] = Math.max(max[channel], imageData.data[i + channel]);
+        }
+      }
+
+      for (let i = 0; i < output.data.length; i += 4) {
+        for (let channel = 0; channel < 3; channel++) {
+          const range = max[channel] - min[channel];
+          output.data[i + channel] = range === 0
+            ? output.data[i + channel]
+            : (output.data[i + channel] - min[channel]) * 255 / range;
+        }
+      }
+      return output;
+    }
+
+    function equalizationMap(values) {
+      const histogram = new Uint32Array(256);
+      for (const value of values) histogram[value]++;
+
+      const cumulative = new Uint32Array(256);
+      let sum = 0;
+      let first = 0;
+      for (let i = 0; i < 256; i++) {
+        sum += histogram[i];
+        cumulative[i] = sum;
+        if (first === 0 && histogram[i] !== 0) first = sum;
+      }
+
+      const map = new Uint8Array(256);
+      const denominator = values.length - first;
+      for (let i = 0; i < 256; i++) {
+        map[i] = denominator === 0 ? i : Math.round((cumulative[i] - first) * 255 / denominator);
+      }
+      return map;
+    }
+
+    function equalizeRgb(imageData) {
+      const output = copyImageData(imageData);
+      const channels = [[], [], []];
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        channels[0].push(imageData.data[i]);
+        channels[1].push(imageData.data[i + 1]);
+        channels[2].push(imageData.data[i + 2]);
+      }
+      const maps = channels.map(equalizationMap);
+      for (let i = 0; i < output.data.length; i += 4) {
+        output.data[i] = maps[0][output.data[i]];
+        output.data[i + 1] = maps[1][output.data[i + 1]];
+        output.data[i + 2] = maps[2][output.data[i + 2]];
+      }
+      return output;
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255;
+      g /= 255;
+      b /= 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const delta = max - min;
+      let h = 0;
+      if (delta !== 0) {
+        if (max === r) h = 60 * (((g - b) / delta) % 6);
+        else if (max === g) h = 60 * ((b - r) / delta + 2);
+        else h = 60 * ((r - g) / delta + 4);
+      }
+      if (h < 0) h += 360;
+      return [h, max === 0 ? 0 : delta / max, max];
+    }
+
+    function hsvToRgb(h, s, v) {
+      const c = v * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = v - c;
+      let rgb;
+      if (h < 60) rgb = [c, x, 0];
+      else if (h < 120) rgb = [x, c, 0];
+      else if (h < 180) rgb = [0, c, x];
+      else if (h < 240) rgb = [0, x, c];
+      else if (h < 300) rgb = [x, 0, c];
+      else rgb = [c, 0, x];
+      return rgb.map(value => Math.round((value + m) * 255));
+    }
+
+    function equalizeHsv(imageData) {
+      const output = copyImageData(imageData);
+      const hsvPixels = [];
+      const values = [];
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const hsv = rgbToHsv(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2]);
+        hsvPixels.push(hsv);
+        values.push(Math.round(hsv[2] * 255));
+      }
+
+      const map = equalizationMap(values);
+      for (let pixel = 0; pixel < hsvPixels.length; pixel++) {
+        const [h, s] = hsvPixels[pixel];
+        const [r, g, b] = hsvToRgb(h, s, map[values[pixel]] / 255);
+        const i = pixel * 4;
+        output.data[i] = r;
+        output.data[i + 1] = g;
+        output.data[i + 2] = b;
+      }
+      return output;
+    }
+
+    function toGrayscale(imageData) {
+      const gray = new Float32Array(imageData.width * imageData.height);
+      for (let i = 0, pixel = 0; i < imageData.data.length; i += 4, pixel++) {
+        gray[pixel] = 0.299 * imageData.data[i] + 0.587 * imageData.data[i + 1] + 0.114 * imageData.data[i + 2];
+      }
+      return gray;
+    }
+
+    function binaryConvolution(imageData, kernel, limit) {
+      const { width, height } = imageData;
+      const gray = toGrayscale(imageData);
+      const output = new ImageData(width, height);
+      for (let i = 3; i < output.data.length; i += 4) output.data[i] = 255;
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let response = 0;
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              response += gray[(y + ky) * width + x + kx] * kernel[(ky + 1) * 3 + kx + 1];
+            }
+          }
+          const value = Math.abs(response) >= limit ? 255 : 0;
+          const index = (y * width + x) * 4;
+          output.data[index] = value;
+          output.data[index + 1] = value;
+          output.data[index + 2] = value;
+          output.data[index + 3] = 255;
+        }
+      }
+      return output;
+    }
+
+    function detectPoints(imageData, limit) {
+      return binaryConvolution(imageData, [-1, -1, -1, -1, 8, -1, -1, -1, -1], limit);
+    }
+
+    function detectLines(imageData, direction, limit) {
+      const kernels = {
+        horizontal: [-1, -1, -1, 2, 2, 2, -1, -1, -1],
+        vertical: [-1, 2, -1, -1, 2, -1, -1, 2, -1],
+        diagonal45: [2, -1, -1, -1, 2, -1, -1, -1, 2],
+        diagonal135: [-1, -1, 2, -1, 2, -1, 2, -1, -1]
+      };
+      return binaryConvolution(imageData, kernels[direction], limit);
+    }
+
+    function detectEdges(imageData, limit) {
+      const { width, height } = imageData;
+      const gray = toGrayscale(imageData);
+      const output = new ImageData(width, height);
+      for (let i = 3; i < output.data.length; i += 4) output.data[i] = 255;
+      const kernelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+      const kernelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let gx = 0;
+          let gy = 0;
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              const value = gray[(y + ky) * width + x + kx];
+              const kernelIndex = (ky + 1) * 3 + kx + 1;
+              gx += value * kernelX[kernelIndex];
+              gy += value * kernelY[kernelIndex];
+            }
+          }
+          const value = Math.hypot(gx, gy) >= limit ? 255 : 0;
+          const index = (y * width + x) * 4;
+          output.data[index] = value;
+          output.data[index + 1] = value;
+          output.data[index + 2] = value;
+          output.data[index + 3] = 255;
+        }
+      }
+      return output;
+    }
+
+    function luminanceHistogram(imageData) {
+      const histogram = new Uint32Array(256);
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const value = Math.round(0.299 * imageData.data[i] + 0.587 * imageData.data[i + 1] + 0.114 * imageData.data[i + 2]);
+        histogram[value]++;
+      }
+      return histogram;
+    }
+
+    function drawHistogram(canvas, imageData, color) {
+      const context = canvas.getContext("2d");
+      const histogram = luminanceHistogram(imageData);
+      const max = Math.max(...histogram);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = "#f8f9fc";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.strokeStyle = "#d9dee8";
+      context.beginPath();
+      context.moveTo(8, canvas.height - 12);
+      context.lineTo(canvas.width - 6, canvas.height - 12);
+      context.stroke();
+
+      const plotWidth = canvas.width - 16;
+      const plotHeight = canvas.height - 22;
+      context.fillStyle = color;
+      for (let i = 0; i < 256; i++) {
+        const x = 8 + i * plotWidth / 256;
+        const height = max === 0 ? 0 : histogram[i] / max * plotHeight;
+        context.fillRect(x, canvas.height - 12 - height, Math.max(1, plotWidth / 256), height);
+      }
+    }
+
+    function updateExplanation() {
+      const info = methodInfo[selectedMethod];
+      methodTitle.textContent = info.title;
+      methodDescription.textContent = info.description;
+      methodFormula.textContent = info.formula;
+      resultMethod.textContent = methodNames[selectedMethod];
+      lineDirection.disabled = selectedMethod !== "lines";
+      threshold.disabled = !["points", "lines", "edges"].includes(selectedMethod);
+    }
+
+    function applyCurrentMethod() {
+      const started = performance.now();
+      const source = getSourceData();
+      const limit = Number(threshold.value);
+      let result;
+
+      if (selectedMethod === "equalizeRgb") result = equalizeRgb(source);
+      else if (selectedMethod === "equalizeHsv") result = equalizeHsv(source);
+      else if (selectedMethod === "points") result = detectPoints(source, limit);
+      else if (selectedMethod === "lines") result = detectLines(source, lineDirection.value, limit);
+      else if (selectedMethod === "edges") result = detectEdges(source, limit);
+      else result = stretchContrast(source);
+
+      resultContext.putImageData(result, 0, 0);
+      drawHistogram(sourceHistogram, source, "#7c8ca8");
+      drawHistogram(resultHistogram, result, "#c64087");
+      processingTime.textContent = `Время обработки: ${(performance.now() - started).toFixed(1)} мс`;
+      updateExplanation();
+    }
+
+    document.querySelectorAll(".sample-button").forEach(button => {
+      button.addEventListener("click", () => loadSample(button.dataset.sample));
+    });
+
+    document.querySelectorAll(".method-button").forEach(button => {
+      button.addEventListener("click", () => {
+        selectedMethod = button.dataset.method;
+        document.querySelectorAll(".method-button").forEach(item => item.classList.toggle("active", item === button));
+        applyCurrentMethod();
+      });
+    });
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+      image.onload = () => {
+        drawUploadedImage(image);
+        URL.revokeObjectURL(url);
+      };
+      image.src = url;
+    });
+
+    threshold.addEventListener("input", () => {
+      thresholdValue.textContent = threshold.value;
+      if (["points", "lines", "edges"].includes(selectedMethod)) applyCurrentMethod();
+    });
+
+    lineDirection.addEventListener("change", applyCurrentMethod);
+    document.getElementById("applyButton").addEventListener("click", applyCurrentMethod);
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      resultContext.putImageData(getSourceData(), 0, 0);
+      drawHistogram(resultHistogram, getSourceData(), "#c64087");
+      resultMethod.textContent = "Без обработки";
+      processingTime.textContent = "Время обработки: 0 мс";
+    });
+
+    document.getElementById("downloadButton").addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = `lab2-${selectedMethod}.png`;
+      link.href = resultCanvas.toDataURL("image/png");
+      link.click();
+    });
+
+    loadSample("contrast");
+  </script>
+</body>
+</html>
