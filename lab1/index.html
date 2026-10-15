@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Цветовые модели: RGB, CMYK, HSV</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --text: #1e293b;
+      --muted: #697386;
+      --line: #dde3ec;
+      --surface: #ffffff;
+      --surface-light: #f5f7fa;
+      --rgb: #4d6ee8;
+      --cmyk: #c43f87;
+      --hsv: #168c83;
+      --selected-color: #4f8cff;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1040px;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(145deg, #fafbfe, #f4f2f8);
+      background-attachment: fixed;
+    }
+
+    #ambientBackground {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #ambientBackground::before,
+    #ambientBackground::after {
+      content: "";
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      background-color: var(--selected-color);
+      filter: blur(125px);
+      opacity: .18;
+      transition: background-color 300ms ease;
+    }
+
+    #ambientBackground::before {
+      top: -210px;
+      right: -120px;
+    }
+
+    #ambientBackground::after {
+      left: -150px;
+      bottom: -240px;
+      opacity: .12;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 38px 0 52px;
+    }
+
+    .hero {
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid #dce2eb;
+    }
+
+    .eyebrow {
+      display: block;
+      margin-bottom: 7px;
+      color: #657189;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 1.6px;
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.1;
+      letter-spacing: -1.2px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      align-items: start;
+      gap: 20px;
+    }
+
+    .preview-card {
+      position: sticky;
+      top: 24px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: 0 14px 35px rgb(49 61 89 / 12%);
+    }
+
+    .preview-title {
+      margin: 0 0 15px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    #preview {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 5px solid #eef1f6;
+      border-radius: 12px;
+      background: #4f8cff;
+      box-shadow: 0 8px 22px rgb(45 55 78 / 18%);
+      transition: background-color 120ms ease;
+    }
+
+    .picker {
+      margin-top: 20px;
+    }
+
+    .picker label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    #colorPicker {
+      display: block;
+      width: 100%;
+      height: 52px;
+      padding: 4px;
+      border: 1px solid #c7cfdb;
+      border-radius: 9px;
+      background: var(--surface-light);
+      cursor: pointer;
+    }
+
+    #hexValue {
+      margin-top: 10px;
+      padding: 9px;
+      border: 1px solid #d7dde7;
+      border-radius: 8px;
+      color: #263247;
+      background: #f1f3f7;
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .models {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .model {
+      --model-color: var(--rgb);
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--model-color);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgb(48 60 86 / 8%);
+    }
+
+    .model:nth-child(1) {
+      --model-color: var(--rgb);
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .model:nth-child(2) {
+      --model-color: var(--cmyk);
+      grid-column: 1 / -1;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 18px;
+    }
+
+    .model:nth-child(3) {
+      --model-color: var(--hsv);
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .model h2 {
+      width: fit-content;
+      margin: 0 0 17px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      color: white;
+      background: var(--model-color);
+      font-size: 17px;
+      letter-spacing: .8px;
+    }
+
+    .model:nth-child(2) h2,
+    .model:nth-child(2) .unit {
+      grid-column: 1 / -1;
+    }
+
+    .control {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) 62px;
+      align-items: center;
+      gap: 8px;
+      margin: 13px 0;
+    }
+
+    .model:nth-child(2) .control {
+      grid-template-columns: 20px minmax(45px, 1fr) 58px;
+      margin: 5px 0;
+    }
+
+    .control label {
+      color: var(--model-color);
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--model-color);
+      cursor: pointer;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      min-width: 0;
+      padding: 7px 5px;
+      border: 1px solid #c8d0dc;
+      border-radius: 6px;
+      color: var(--text);
+      background: #f8f9fb;
+      font: inherit;
+      text-align: right;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--model-color);
+      background: white;
+      box-shadow: 0 0 0 3px rgb(77 110 232 / 13%);
+    }
+
+    .unit {
+      margin-top: 13px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .model:nth-child(2) .unit {
+      margin-bottom: 0;
+      text-align: right;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="ambientBackground" aria-hidden="true"></div>
+
+  <main class="container">
+    <header class="hero">
+      <span class="eyebrow">ЛАБОРАТОРНАЯ РАБОТА №1</span>
+      <h1>Цветовые модели</h1>
+      <p class="subtitle">Чётный вариант: CMYK — RGB — HSV</p>
+    </header>
+
+    <section class="workspace">
+      <section class="preview-card">
+        <h2 class="preview-title">Текущий цвет</h2>
+        <div class="preview-area">
+          <div id="preview" aria-label="Предпросмотр выбранного цвета"></div>
+        </div>
+        <div class="picker">
+          <label for="colorPicker">Выбор из палитры</label>
+          <input id="colorPicker" type="color" value="#4f8cff">
+          <div id="hexValue">#4F8CFF</div>
+        </div>
+      </section>
+
+      <section class="models">
+        <div class="model">
+          <h2>RGB</h2>
+          <div class="control"><label for="r-range">R</label><input id="r-range" type="range" min="0" max="255"><input id="r-number" type="number" min="0" max="255"></div>
+          <div class="control"><label for="g-range">G</label><input id="g-range" type="range" min="0" max="255"><input id="g-number" type="number" min="0" max="255"></div>
+          <div class="control"><label for="b-range">B</label><input id="b-range" type="range" min="0" max="255"><input id="b-number" type="number" min="0" max="255"></div>
+          <div class="unit">Диапазон: 0–255</div>
+        </div>
+
+        <div class="model">
+          <h2>CMYK</h2>
+          <div class="control"><label for="c-range">C</label><input id="c-range" type="range" min="0" max="100"><input id="c-number" type="number" min="0" max="100"></div>
+          <div class="control"><label for="m-range">M</label><input id="m-range" type="range" min="0" max="100"><input id="m-number" type="number" min="0" max="100"></div>
+          <div class="control"><label for="y-range">Y</label><input id="y-range" type="range" min="0" max="100"><input id="y-number" type="number" min="0" max="100"></div>
+          <div class="control"><label for="k-range">K</label><input id="k-range" type="range" min="0" max="100"><input id="k-number" type="number" min="0" max="100"></div>
+          <div class="unit">Значения в процентах</div>
+        </div>
+
+        <div class="model">
+          <h2>HSV</h2>
+          <div class="control"><label for="h-range">H</label><input id="h-range" type="range" min="0" max="360"><input id="h-number" type="number" min="0" max="360"></div>
+          <div class="control"><label for="s-range">S</label><input id="s-range" type="range" min="0" max="100"><input id="s-number" type="number" min="0" max="100"></div>
+          <div class="control"><label for="v-range">V</label><input id="v-range" type="range" min="0" max="100"><input id="v-number" type="number" min="0" max="100"></div>
+          <div class="unit">H: 0–360°, S и V: 0–100%</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const channels = ["r", "g", "b", "c", "m", "y", "k", "h", "s", "v"];
+    const elements = {};
+
+    for (const channel of channels) {
+      elements[channel] = {
+        range: document.getElementById(`${channel}-range`),
+        number: document.getElementById(`${channel}-number`)
+      };
+    }
+
+    const preview = document.getElementById("preview");
+    const colorPicker = document.getElementById("colorPicker");
+    const hexValue = document.getElementById("hexValue");
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value) || 0));
+    const round = value => Math.round(value);
+
+    function setChannel(channel, value) {
+      const max = Number(elements[channel].number.max);
+      const safeValue = round(clamp(value, 0, max));
+      elements[channel].range.value = safeValue;
+      elements[channel].number.value = safeValue;
+    }
+
+    function getChannel(channel) {
+      return Number(elements[channel].number.value);
+    }
+
+    function rgbToCmyk(r, g, b) {
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const k = 1 - Math.max(rn, gn, bn);
+
+      if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+
+      return {
+        c: ((1 - rn - k) / (1 - k)) * 100,
+        m: ((1 - gn - k) / (1 - k)) * 100,
+        y: ((1 - bn - k) / (1 - k)) * 100,
+        k: k * 100
+      };
+    }
+
+    function cmykToRgb(c, m, y, k) {
+      c /= 100;
+      m /= 100;
+      y /= 100;
+      k /= 100;
+      return {
+        r: 255 * (1 - c) * (1 - k),
+        g: 255 * (1 - m) * (1 - k),
+        b: 255 * (1 - y) * (1 - k)
+      };
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255;
+      g /= 255;
+      b /= 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const delta = max - min;
+      let h = 0;
+
+      if (delta !== 0) {
+        if (max === r) h = 60 * (((g - b) / delta) % 6);
+        else if (max === g) h = 60 * ((b - r) / delta + 2);
+        else h = 60 * ((r - g) / delta + 4);
+      }
+
+      if (h < 0) h += 360;
+      return {
+        h,
+        s: max === 0 ? 0 : (delta / max) * 100,
+        v: max * 100
+      };
+    }
+
+    function hsvToRgb(h, s, v) {
+      h = h === 360 ? 0 : h;
+      s /= 100;
+      v /= 100;
+      const c = v * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = v - c;
+      let r = 0, g = 0, b = 0;
+
+      if (h < 60) [r, g, b] = [c, x, 0];
+      else if (h < 120) [r, g, b] = [x, c, 0];
+      else if (h < 180) [r, g, b] = [0, c, x];
+      else if (h < 240) [r, g, b] = [0, x, c];
+      else if (h < 300) [r, g, b] = [x, 0, c];
+      else [r, g, b] = [c, 0, x];
+
+      return {
+        r: (r + m) * 255,
+        g: (g + m) * 255,
+        b: (b + m) * 255
+      };
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b]
+        .map(value => round(value).toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+    }
+
+    function showRgb(r, g, b, sourceModel = "") {
+      r = round(clamp(r, 0, 255));
+      g = round(clamp(g, 0, 255));
+      b = round(clamp(b, 0, 255));
+
+      if (sourceModel !== "rgb") {
+        setChannel("r", r);
+        setChannel("g", g);
+        setChannel("b", b);
+      }
+
+      if (sourceModel !== "cmyk") {
+        const cmyk = rgbToCmyk(r, g, b);
+        for (const channel of ["c", "m", "y", "k"]) setChannel(channel, cmyk[channel]);
+      }
+
+      if (sourceModel !== "hsv") {
+        const hsv = rgbToHsv(r, g, b);
+        for (const channel of ["h", "s", "v"]) setChannel(channel, hsv[channel]);
+      }
+
+      const hex = rgbToHex(r, g, b);
+      preview.style.backgroundColor = hex;
+      colorPicker.value = hex.toLowerCase();
+      hexValue.textContent = hex;
+      document.documentElement.style.setProperty("--selected-color", hex);
+    }
+
+    function updateFromRgb() {
+      showRgb(getChannel("r"), getChannel("g"), getChannel("b"), "rgb");
+    }
+
+    function updateFromCmyk() {
+      const c = getChannel("c");
+      const m = getChannel("m");
+      const y = getChannel("y");
+      const k = getChannel("k");
+
+      showRgb(...Object.values(cmykToRgb(c, m, y, k)), "cmyk");
+    }
+
+    function updateFromHsv() {
+      const h = getChannel("h");
+      const s = getChannel("s");
+      const v = getChannel("v");
+
+      showRgb(...Object.values(hsvToRgb(h, s, v)), "hsv");
+    }
+
+    function connectModel(modelChannels, update) {
+      for (const channel of modelChannels) {
+        const { range, number } = elements[channel];
+
+        range.addEventListener("input", () => {
+          number.value = range.value;
+          update();
+        });
+
+        number.addEventListener("input", () => {
+          const value = clamp(number.value, 0, Number(number.max));
+          number.value = value;
+          range.value = value;
+          update();
+        });
+
+        number.addEventListener("change", () => {
+          setChannel(channel, number.value);
+          update();
+        });
+      }
+    }
+
+    connectModel(["r", "g", "b"], updateFromRgb);
+    connectModel(["c", "m", "y", "k"], updateFromCmyk);
+    connectModel(["h", "s", "v"], updateFromHsv);
+
+    colorPicker.addEventListener("input", () => {
+      const hex = colorPicker.value;
+      showRgb(
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16)
+      );
+    });
+
+    showRgb(79, 140, 255);
+  </script>
+</body>
+</html>

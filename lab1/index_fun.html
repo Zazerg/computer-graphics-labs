@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Цветовые модели: RGB, CMYK, HSV</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ink: #322759;
+      --muted: #716b88;
+      --purple: #7c4dff;
+      --pink: #ff4fa3;
+      --cyan: #16b8d4;
+      --yellow: #ffbd2e;
+      --selected-color: #676767;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 15%, rgb(255 191 71 / 55%) 0 7%, transparent 8%),
+        radial-gradient(circle at 92% 12%, rgb(255 95 174 / 38%) 0 10%, transparent 11%),
+        radial-gradient(circle at 82% 90%, rgb(60 211 230 / 40%) 0 11%, transparent 12%),
+        linear-gradient(135deg, #fff7cf 0%, #ffe3f2 48%, #dff8ff 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -25%;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--selected-color) 45%, transparent), transparent 30%),
+        radial-gradient(circle at 25% 55%, rgb(255 79 163 / 28%), transparent 24%),
+        radial-gradient(circle at 78% 62%, rgb(22 184 212 / 30%), transparent 25%);
+      filter: blur(45px) saturate(1.4);
+      animation: hype-wave 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes hype-wave {
+      from { transform: scale(.96) rotate(-2deg); opacity: .72; }
+      to { transform: scale(1.06) rotate(2deg); opacity: 1; }
+    }
+
+    .decorations {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .decorations span {
+      position: absolute;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border: 3px solid rgb(255 255 255 / 75%);
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgb(76 46 115 / 15%);
+      font-size: 25px;
+      animation: float 5s ease-in-out infinite;
+    }
+
+    .decorations span:nth-child(1) { top: 8%; left: 3%; background: #ff6fae; transform: rotate(-12deg); }
+    .decorations span:nth-child(2) { top: 20%; right: 3%; background: #ffd44d; animation-delay: -1s; transform: rotate(10deg); }
+    .decorations span:nth-child(3) { top: 55%; left: 1%; background: #58d7e8; animation-delay: -2s; transform: rotate(8deg); }
+    .decorations span:nth-child(4) { top: 72%; right: 2%; background: #9d7cff; animation-delay: -3s; transform: rotate(-9deg); }
+    .decorations span:nth-child(5) { bottom: 3%; left: 8%; background: #77df81; animation-delay: -4s; transform: rotate(7deg); }
+    .decorations span:nth-child(6) { bottom: 5%; right: 10%; background: #ff8c52; animation-delay: -2.5s; transform: rotate(-8deg); }
+    .decorations span:nth-child(7) { top: 39%; right: 7%; background: #ff5f91; animation-delay: -1.5s; transform: rotate(12deg); }
+    .decorations span:nth-child(8) { bottom: 28%; left: 6%; background: #ffd43b; animation-delay: -3.5s; transform: rotate(-11deg); }
+
+    .aura-67-field {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .aura-67-field span {
+      position: absolute;
+      top: var(--y);
+      left: var(--x);
+      color: #7c4dff;
+      font-size: var(--size);
+      font-weight: 1000;
+      line-height: 1;
+      opacity: .16;
+      text-shadow: 0 0 14px rgb(124 77 255 / 45%);
+      transform: rotate(var(--rotate));
+      animation: rain-67 var(--speed) ease-in-out infinite alternate;
+      animation-delay: var(--delay);
+    }
+
+    .aura-67-field span:nth-child(3n) { color: #ff4fa3; }
+    .aura-67-field span:nth-child(3n + 1) { color: #16b8d4; }
+
+    @keyframes rain-67 {
+      from { translate: 0 -8px; scale: .94; }
+      to { translate: 0 14px; scale: 1.08; }
+    }
+
+    .sixty-seven-marquee {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 2;
+      overflow: hidden;
+      padding: 6px 0;
+      border-top: 2px solid rgb(255 255 255 / 65%);
+      color: white;
+      background: linear-gradient(90deg, #7c4dffdd, #ff4fa3dd, #16b8d4dd);
+      box-shadow: 0 -5px 20px rgb(113 62 170 / 20%);
+      font-size: 17px;
+      font-weight: 1000;
+      letter-spacing: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee-67 12s linear infinite;
+    }
+
+    .marquee-segment {
+      flex: none;
+      min-width: 3000px;
+      padding-right: 4px;
+    }
+
+    @keyframes marquee-67 {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    @keyframes float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -13px; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(1000px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 38px 0 48px;
+    }
+
+    .hero {
+      margin-bottom: 26px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(32px, 6vw, 52px);
+      line-height: 1;
+      text-align: center;
+      background: linear-gradient(90deg, var(--purple), var(--pink), #f28b20);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 3px 0 rgb(255 255 255 / 80%));
+      animation: title-pop 700ms cubic-bezier(.2, .8, .25, 1.2) both;
+    }
+
+    @keyframes title-pop {
+      from { opacity: 0; transform: scale(.82) rotate(-2deg); }
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    .subtitle {
+      width: fit-content;
+      margin: 12px auto 10px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      color: #665085;
+      background: rgb(255 255 255 / 72%);
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 5px 16px rgb(84 54 133 / 10%);
+    }
+
+    .happy-line {
+      margin: 0;
+      color: #8b4ca0;
+      font-size: 17px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .aura-banner {
+      display: flex;
+      width: fit-content;
+      align-items: center;
+      gap: 13px;
+      margin: 16px auto 0;
+      padding: 8px 15px;
+      border: 3px solid white;
+      border-radius: 15px;
+      color: white;
+      background: linear-gradient(110deg, #7c4dff, #ff4fa3, #ff9d27);
+      box-shadow:
+        0 8px 22px rgb(126 69 215 / 28%),
+        0 0 26px rgb(255 79 163 / 42%),
+        0 0 48px rgb(22 184 212 / 26%);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      transform: rotate(-1deg);
+      animation: banner-hype 1.6s ease-in-out infinite alternate;
+    }
+
+    .aura-number {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border-radius: 50%;
+      color: #7234ad;
+      background: #fff36b;
+      box-shadow: 0 0 0 4px rgb(255 255 255 / 25%);
+      font-size: 20px;
+      animation: aura-bounce 1.4s ease-in-out infinite;
+    }
+
+    .aura-code {
+      color: #fff36b;
+      font-family: monospace;
+      font-size: 16px;
+    }
+
+    @keyframes aura-bounce {
+      0%, 100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-4px) rotate(4deg); }
+    }
+
+    @keyframes banner-hype {
+      from { transform: rotate(-1deg) scale(1); }
+      to { transform: rotate(1deg) scale(1.035); }
+    }
+
+    .preview-card,
+    .model {
+      border: 2px solid rgb(255 255 255 / 90%);
+      border-radius: 22px;
+      background: rgb(255 255 255 / 82%);
+      box-shadow: 0 12px 30px rgb(75 48 115 / 14%);
+      backdrop-filter: blur(10px);
+    }
+
+    .preview-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 20px;
+      transform: rotate(-0.25deg);
+    }
+
+    .preview-card::before {
+      content: "ЦВЕТ НАСТРОЕНИЯ";
+      position: absolute;
+      top: -13px;
+      left: 25px;
+      padding: 6px 12px;
+      border: 3px solid white;
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(90deg, #ff4fa3, #ff884e);
+      box-shadow: 0 5px 12px rgb(255 79 163 / 25%);
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transform: rotate(-2deg);
+    }
+
+    .preview-area { flex: 1; }
+
+    .preview-message {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #preview {
+      width: 100%;
+      min-height: 125px;
+      border: 5px solid white;
+      border-radius: 17px;
+      background: #4f8cff;
+      box-shadow:
+        inset 0 0 0 1px rgb(0 0 0 / 8%),
+        0 7px 18px rgb(46 34 78 / 18%),
+        0 0 28px color-mix(in srgb, var(--selected-color) 75%, transparent),
+        -16px -8px 44px rgb(255 79 163 / 58%),
+        16px 10px 52px rgb(22 184 212 / 55%);
+      transition: background-color 120ms ease, box-shadow 300ms ease;
+      animation: preview-hype 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes preview-hype {
+      from {
+        box-shadow:
+          inset 0 0 0 1px rgb(0 0 0 / 8%),
+          0 7px 18px rgb(46 34 78 / 18%),
+          0 0 24px color-mix(in srgb, var(--selected-color) 70%, transparent),
+          -12px -6px 34px rgb(255 79 163 / 45%),
+          12px 8px 40px rgb(22 184 212 / 42%);
+      }
+      to {
+        box-shadow:
+          inset 0 0 0 1px rgb(0 0 0 / 8%),
+          0 9px 24px rgb(46 34 78 / 24%),
+          0 0 55px color-mix(in srgb, var(--selected-color) 88%, transparent),
+          -22px -12px 65px rgb(255 79 163 / 72%),
+          22px 15px 72px rgb(22 184 212 / 68%);
+      }
+    }
+
+    .picker {
+      min-width: 150px;
+      padding: 10px;
+      text-align: center;
+    }
+    .picker label { display: block; margin-bottom: 8px; font-weight: bold; }
+    #colorPicker {
+      width: 100px;
+      height: 58px;
+      padding: 4px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--pink), var(--yellow), var(--cyan));
+      cursor: pointer;
+    }
+    #hexValue {
+      width: fit-content;
+      margin: 7px auto 0;
+      padding: 4px 9px;
+      border-radius: 7px;
+      color: white;
+      background: var(--ink);
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .magic-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .magic-button {
+      width: 100%;
+      padding: 9px 10px;
+      border: 2px solid white;
+      border-radius: 10px;
+      color: white;
+      background: linear-gradient(100deg, #7c4dff, #ff4fa3);
+      box-shadow: 0 5px 13px rgb(100 61 165 / 20%);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .magic-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 18px rgb(100 61 165 / 30%);
+    }
+
+    .magic-button:active { transform: translateY(0) scale(.98); }
+
+    #random67Button {
+      color: #5c3384;
+      background: linear-gradient(100deg, #fff36b, #ffbd2e);
+    }
+
+    .models {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .model {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .model::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 8px;
+      background: var(--card-color);
+    }
+
+    .model:nth-child(1) { --card-color: linear-gradient(90deg, #ff4f72, #56d36b, #5794ff); }
+    .model:nth-child(2) { --card-color: linear-gradient(90deg, #19bfd0, #ef4eaa, #ffd633, #38304f); }
+    .model:nth-child(3) { --card-color: linear-gradient(90deg, #ff476f, #ffd643, #23c8ba, #7957e8); }
+
+    .model:nth-child(1) { transform: rotate(-0.7deg); }
+    .model:nth-child(2) { transform: translateY(5px) rotate(0.5deg); }
+    .model:nth-child(3) { transform: rotate(0.8deg); }
+
+    .model:hover {
+      transform: translateY(-7px) rotate(0);
+      box-shadow: 0 18px 36px rgb(75 48 115 / 20%);
+    }
+
+    .model h2 {
+      width: fit-content;
+      margin: 3px auto 18px;
+      padding: 6px 14px;
+      border-radius: 10px;
+      color: white;
+      background: var(--ink);
+      font-size: 21px;
+      letter-spacing: 1px;
+    }
+
+    .model:nth-child(1) h2 { background: linear-gradient(90deg, #f04e6e, #6b59da); }
+    .model:nth-child(2) h2 { background: linear-gradient(90deg, #12aebf, #ef4eaa); }
+    .model:nth-child(3) h2 { background: linear-gradient(90deg, #ef8d23, #6d55d9); }
+
+    .control {
+      display: grid;
+      grid-template-columns: 24px 1fr 68px;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .control label {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--ink);
+      font-size: 13px;
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--purple);
+      cursor: pointer;
+    }
+    .model:nth-child(2) input[type="range"] { accent-color: var(--pink); }
+    .model:nth-child(3) input[type="range"] { accent-color: var(--cyan); }
+    input[type="number"] {
+      width: 68px;
+      padding: 7px;
+      border: 2px solid #e3dded;
+      border-radius: 9px;
+      color: var(--ink);
+      background: white;
+      font-weight: bold;
+      outline: none;
+    }
+    input[type="number"]:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgb(124 77 255 / 15%);
+    }
+
+    .unit {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .models { grid-template-columns: 1fr; }
+      .preview-card { flex-direction: column; }
+      #preview { width: 100%; }
+      .preview-area { width: 100%; }
+      .decorations { opacity: .5; }
+      .model:nth-child(n) { transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="decorations" aria-hidden="true">
+    <span>6</span><span>7</span><span>★</span><span>67</span>
+    <span>♥</span><span>7</span><span>6</span><span>67</span>
+  </div>
+
+  <div class="aura-67-field" aria-hidden="true">
+    <span style="--x:2%;--y:4%;--size:34px;--rotate:-12deg;--speed:3.1s;--delay:-1s">67</span>
+    <span style="--x:13%;--y:11%;--size:22px;--rotate:8deg;--speed:4.2s;--delay:-2s">67</span>
+    <span style="--x:25%;--y:5%;--size:44px;--rotate:-5deg;--speed:3.7s;--delay:-.5s">67</span>
+    <span style="--x:39%;--y:13%;--size:28px;--rotate:15deg;--speed:4.5s;--delay:-3s">67</span>
+    <span style="--x:55%;--y:3%;--size:36px;--rotate:-9deg;--speed:3.4s;--delay:-2s">67</span>
+    <span style="--x:70%;--y:10%;--size:24px;--rotate:7deg;--speed:4.1s;--delay:-1s">67</span>
+    <span style="--x:84%;--y:5%;--size:42px;--rotate:-14deg;--speed:3.8s;--delay:-2.5s">67</span>
+    <span style="--x:95%;--y:17%;--size:27px;--rotate:11deg;--speed:4.4s;--delay:-.8s">67</span>
+    <span style="--x:6%;--y:29%;--size:45px;--rotate:6deg;--speed:3.6s;--delay:-3s">67</span>
+    <span style="--x:18%;--y:37%;--size:25px;--rotate:-16deg;--speed:4.6s;--delay:-1s">67</span>
+    <span style="--x:31%;--y:26%;--size:32px;--rotate:10deg;--speed:3.3s;--delay:-2s">67</span>
+    <span style="--x:46%;--y:35%;--size:48px;--rotate:-7deg;--speed:4.3s;--delay:-1.5s">67</span>
+    <span style="--x:61%;--y:25%;--size:26px;--rotate:13deg;--speed:3.9s;--delay:-3s">67</span>
+    <span style="--x:76%;--y:33%;--size:38px;--rotate:-11deg;--speed:4.7s;--delay:-2s">67</span>
+    <span style="--x:90%;--y:29%;--size:23px;--rotate:9deg;--speed:3.5s;--delay:-1s">67</span>
+    <span style="--x:1%;--y:53%;--size:29px;--rotate:-8deg;--speed:4.1s;--delay:-2s">67</span>
+    <span style="--x:14%;--y:61%;--size:41px;--rotate:14deg;--speed:3.7s;--delay:-.5s">67</span>
+    <span style="--x:28%;--y:50%;--size:24px;--rotate:-13deg;--speed:4.5s;--delay:-3s">67</span>
+    <span style="--x:42%;--y:64%;--size:35px;--rotate:5deg;--speed:3.2s;--delay:-1s">67</span>
+    <span style="--x:58%;--y:52%;--size:46px;--rotate:-10deg;--speed:4.4s;--delay:-2s">67</span>
+    <span style="--x:72%;--y:62%;--size:27px;--rotate:12deg;--speed:3.8s;--delay:-1.5s">67</span>
+    <span style="--x:87%;--y:51%;--size:39px;--rotate:-6deg;--speed:4.6s;--delay:-3s">67</span>
+    <span style="--x:96%;--y:67%;--size:22px;--rotate:15deg;--speed:3.4s;--delay:-1s">67</span>
+    <span style="--x:7%;--y:78%;--size:37px;--rotate:-15deg;--speed:4.2s;--delay:-2s">67</span>
+    <span style="--x:21%;--y:88%;--size:25px;--rotate:8deg;--speed:3.6s;--delay:-.5s">67</span>
+    <span style="--x:35%;--y:76%;--size:43px;--rotate:-4deg;--speed:4.8s;--delay:-3s">67</span>
+    <span style="--x:51%;--y:89%;--size:28px;--rotate:13deg;--speed:3.3s;--delay:-1s">67</span>
+    <span style="--x:66%;--y:77%;--size:34px;--rotate:-12deg;--speed:4.3s;--delay:-2s">67</span>
+    <span style="--x:80%;--y:87%;--size:47px;--rotate:6deg;--speed:3.9s;--delay:-1.5s">67</span>
+    <span style="--x:93%;--y:80%;--size:26px;--rotate:-9deg;--speed:4.5s;--delay:-3s">67</span>
+  </div>
+
+  <div class="sixty-seven-marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span class="marquee-segment">67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦</span>
+      <span class="marquee-segment">67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦ 67 ✦</span>
+    </div>
+  </div>
+
+  <main class="container">
+    <header class="hero">
+      <h1>🎨 Цветовые модели</h1>
+      <p class="subtitle">Чётный вариант: CMYK — RGB — HSV</p>
+      <p class="happy-line">🌈 смешивай · сияй · экспериментируй ✨</p>
+      <div class="aura-banner">
+        <span class="aura-number">67</span>
+        <span>ГАЗАН · СВАГА · АУРА</span>
+        <span class="aura-code">676767</span>
+      </div>
+    </header>
+
+    <section class="preview-card">
+      <div class="preview-area">
+        <div id="preview" aria-label="Предпросмотр выбранного цвета"></div>
+        <p class="preview-message">Каждый цвет — это маленькое настроение 💫</p>
+      </div>
+      <div class="picker">
+        <label for="colorPicker">Выбери магию ✨</label>
+        <input id="colorPicker" type="color" value="#676767">
+        <div id="hexValue">#676767</div>
+        <div class="magic-actions">
+          <button class="magic-button" id="randomColorButton" type="button">🎲 Случайный цвет</button>
+          <button class="magic-button" id="random67Button" type="button">⚡ РАЗДАТЬ 67 АУРЫ</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="models">
+      <div class="model">
+        <h2>🌈 RGB</h2>
+        <div class="control"><label for="r-range">R</label><input id="r-range" type="range" min="0" max="255"><input id="r-number" type="number" min="0" max="255"></div>
+        <div class="control"><label for="g-range">G</label><input id="g-range" type="range" min="0" max="255"><input id="g-number" type="number" min="0" max="255"></div>
+        <div class="control"><label for="b-range">B</label><input id="b-range" type="range" min="0" max="255"><input id="b-number" type="number" min="0" max="255"></div>
+        <div class="unit">Диапазон: 0–255</div>
+      </div>
+
+      <div class="model">
+        <h2>🎉 CMYK</h2>
+        <div class="control"><label for="c-range">C</label><input id="c-range" type="range" min="0" max="100"><input id="c-number" type="number" min="0" max="100"></div>
+        <div class="control"><label for="m-range">M</label><input id="m-range" type="range" min="0" max="100"><input id="m-number" type="number" min="0" max="100"></div>
+        <div class="control"><label for="y-range">Y</label><input id="y-range" type="range" min="0" max="100"><input id="y-number" type="number" min="0" max="100"></div>
+        <div class="control"><label for="k-range">K</label><input id="k-range" type="range" min="0" max="100"><input id="k-number" type="number" min="0" max="100"></div>
+        <div class="unit">Значения в процентах</div>
+      </div>
+
+      <div class="model">
+        <h2>✨ HSV</h2>
+        <div class="control"><label for="h-range">H</label><input id="h-range" type="range" min="0" max="360"><input id="h-number" type="number" min="0" max="360"></div>
+        <div class="control"><label for="s-range">S</label><input id="s-range" type="range" min="0" max="100"><input id="s-number" type="number" min="0" max="100"></div>
+        <div class="control"><label for="v-range">V</label><input id="v-range" type="range" min="0" max="100"><input id="v-number" type="number" min="0" max="100"></div>
+        <div class="unit">H: 0–360°, S и V: 0–100%</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const channels = ["r", "g", "b", "c", "m", "y", "k", "h", "s", "v"];
+    const elements = {};
+
+    for (const channel of channels) {
+      elements[channel] = {
+        range: document.getElementById(`${channel}-range`),
+        number: document.getElementById(`${channel}-number`)
+      };
+    }
+
+    const preview = document.getElementById("preview");
+    const colorPicker = document.getElementById("colorPicker");
+    const hexValue = document.getElementById("hexValue");
+    const randomColorButton = document.getElementById("randomColorButton");
+    const random67Button = document.getElementById("random67Button");
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value) || 0));
+    const round = value => Math.round(value);
+
+    function setChannel(channel, value) {
+      const max = Number(elements[channel].number.max);
+      const safeValue = round(clamp(value, 0, max));
+      elements[channel].range.value = safeValue;
+      elements[channel].number.value = safeValue;
+    }
+
+    function getChannel(channel) {
+      return Number(elements[channel].number.value);
+    }
+
+    function rgbToCmyk(r, g, b) {
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const k = 1 - Math.max(rn, gn, bn);
+
+      if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+
+      return {
+        c: ((1 - rn - k) / (1 - k)) * 100,
+        m: ((1 - gn - k) / (1 - k)) * 100,
+        y: ((1 - bn - k) / (1 - k)) * 100,
+        k: k * 100
+      };
+    }
+
+    function cmykToRgb(c, m, y, k) {
+      c /= 100;
+      m /= 100;
+      y /= 100;
+      k /= 100;
+      return {
+        r: 255 * (1 - c) * (1 - k),
+        g: 255 * (1 - m) * (1 - k),
+        b: 255 * (1 - y) * (1 - k)
+      };
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255;
+      g /= 255;
+      b /= 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const delta = max - min;
+      let h = 0;
+
+      if (delta !== 0) {
+        if (max === r) h = 60 * (((g - b) / delta) % 6);
+        else if (max === g) h = 60 * ((b - r) / delta + 2);
+        else h = 60 * ((r - g) / delta + 4);
+      }
+
+      if (h < 0) h += 360;
+      return {
+        h,
+        s: max === 0 ? 0 : (delta / max) * 100,
+        v: max * 100
+      };
+    }
+
+    function hsvToRgb(h, s, v) {
+      h = h === 360 ? 0 : h;
+      s /= 100;
+      v /= 100;
+      const c = v * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = v - c;
+      let r = 0, g = 0, b = 0;
+
+      if (h < 60) [r, g, b] = [c, x, 0];
+      else if (h < 120) [r, g, b] = [x, c, 0];
+      else if (h < 180) [r, g, b] = [0, c, x];
+      else if (h < 240) [r, g, b] = [0, x, c];
+      else if (h < 300) [r, g, b] = [x, 0, c];
+      else [r, g, b] = [c, 0, x];
+
+      return {
+        r: (r + m) * 255,
+        g: (g + m) * 255,
+        b: (b + m) * 255
+      };
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b]
+        .map(value => round(value).toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+    }
+
+    function showRgb(r, g, b, sourceModel = "") {
+      r = round(clamp(r, 0, 255));
+      g = round(clamp(g, 0, 255));
+      b = round(clamp(b, 0, 255));
+
+      if (sourceModel !== "rgb") {
+        setChannel("r", r);
+        setChannel("g", g);
+        setChannel("b", b);
+      }
+
+      if (sourceModel !== "cmyk") {
+        const cmyk = rgbToCmyk(r, g, b);
+        for (const channel of ["c", "m", "y", "k"]) setChannel(channel, cmyk[channel]);
+      }
+
+      if (sourceModel !== "hsv") {
+        const hsv = rgbToHsv(r, g, b);
+        for (const channel of ["h", "s", "v"]) setChannel(channel, hsv[channel]);
+      }
+
+      const hex = rgbToHex(r, g, b);
+      preview.style.backgroundColor = hex;
+      colorPicker.value = hex.toLowerCase();
+      hexValue.textContent = hex;
+      document.documentElement.style.setProperty("--selected-color", hex);
+    }
+
+    function updateFromRgb() {
+      showRgb(getChannel("r"), getChannel("g"), getChannel("b"), "rgb");
+    }
+
+    function updateFromCmyk() {
+      const c = getChannel("c");
+      const m = getChannel("m");
+      const y = getChannel("y");
+      const k = getChannel("k");
+
+      showRgb(...Object.values(cmykToRgb(c, m, y, k)), "cmyk");
+    }
+
+    function updateFromHsv() {
+      const h = getChannel("h");
+      const s = getChannel("s");
+      const v = getChannel("v");
+
+      showRgb(...Object.values(hsvToRgb(h, s, v)), "hsv");
+    }
+
+    function connectModel(modelChannels, update) {
+      for (const channel of modelChannels) {
+        const { range, number } = elements[channel];
+
+        range.addEventListener("input", () => {
+          number.value = range.value;
+          update();
+        });
+
+        number.addEventListener("input", () => {
+          const value = clamp(number.value, 0, Number(number.max));
+          number.value = value;
+          range.value = value;
+          update();
+        });
+
+        number.addEventListener("change", () => {
+          setChannel(channel, number.value);
+          update();
+        });
+      }
+    }
+
+    connectModel(["r", "g", "b"], updateFromRgb);
+    connectModel(["c", "m", "y", "k"], updateFromCmyk);
+    connectModel(["h", "s", "v"], updateFromHsv);
+
+    function showRandomColor() {
+      showRgb(
+        Math.floor(Math.random() * 256),
+        Math.floor(Math.random() * 256),
+        Math.floor(Math.random() * 256)
+      );
+    }
+
+    function put67InRandomFields() {
+      const models = [
+        { channels: ["r", "g", "b"], update: updateFromRgb },
+        { channels: ["c", "m", "y", "k"], update: updateFromCmyk },
+        { channels: ["h", "s", "v"], update: updateFromHsv }
+      ];
+      const model = models[Math.floor(Math.random() * models.length)];
+      const shuffled = [...model.channels].sort(() => Math.random() - 0.5);
+      const count = 2 + Math.floor(Math.random() * (model.channels.length - 1));
+
+      for (const channel of shuffled.slice(0, count)) setChannel(channel, 67);
+      model.update();
+    }
+
+    randomColorButton.addEventListener("click", showRandomColor);
+    random67Button.addEventListener("click", put67InRandomFields);
+
+    colorPicker.addEventListener("input", () => {
+      const hex = colorPicker.value;
+      showRgb(
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16)
+      );
+    });
+
+    showRgb(103, 103, 103);
+  </script>
+</body>
+</html>
